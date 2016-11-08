@@ -10,7 +10,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class DecisionTree {
+public class DecisionTree implements Classifier {
 
     private TreeNode root;
 
@@ -24,6 +24,7 @@ public class DecisionTree {
         buildTree(root, trainingSet);
     }
 
+    @Override
     public boolean classify(Instance instance) {
         TreeNode node = root;
         while (!node.isLeaf()) {

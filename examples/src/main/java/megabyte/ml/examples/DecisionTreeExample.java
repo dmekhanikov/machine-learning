@@ -1,9 +1,13 @@
 package megabyte.ml.examples;
 
 import megabyte.ml.Instance;
+import megabyte.ml.classifiers.Classifier;
 import megabyte.ml.classifiers.DecisionTree;
+import megabyte.ml.util.Measures;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,30 +22,17 @@ public class DecisionTreeExample {
         String trainLabelsFile = getResource("random-forest/arcene_train.labels");
         List<Instance> trainSet = readInstances(trainDataFile, trainLabelsFile);
         DecisionTree decisionTree = new DecisionTree();
-        decisionTree.train(trainSet);
+        int buildSetSize = trainSet.size() * 2 / 3;
+        List<Instance> buildSet = trainSet.subList(0, buildSetSize);
+        decisionTree.train(buildSet);
+        List<Instance> pruneSet = trainSet.subList(buildSetSize, trainSet.size());
+        decisionTree.prune(pruneSet);
 
         String validDataFile = getResource("random-forest/arcene_valid.data");
         String validLabelsFile = getResource("random-forest/arcene_valid.labels");
         List<Instance> validSet = readInstances(validDataFile, validLabelsFile);
-        double f1 = f1Measure(decisionTree, validSet);
+        double f1 = Measures.f1Measure(decisionTree, validSet);
         System.out.println("F1 Measure: " + f1);
-    }
-
-    private double f1Measure(DecisionTree classifier, List<Instance> instances) {
-        int tp = 0, fp = 0, fn = 0;
-        for (Instance instance : instances) {
-            boolean label = classifier.classify(instance);
-            if (instance.getLabel() && !label) {
-                fp++;
-            } else if (!instance.getLabel() && label) {
-                fn++;
-            } else if (instance.getLabel() && label) {
-                tp++;
-            }
-        }
-        double precision = (double) tp / (tp + fp);
-        double recall = (double) tp / (tp + fn);
-        return 2 * (precision * recall) / (precision + recall);
     }
 
     private List<Instance> readInstances(String featuresFile, String labelsFile) throws IOException {
