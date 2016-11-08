@@ -6,7 +6,12 @@
 
     <groupId>megabyte.ml</groupId>
     <artifactId>machine-learning</artifactId>
+    <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
+
+    <modules>
+        <module>core</module>
+    </modules>
 
     <build>
         <plugins>
