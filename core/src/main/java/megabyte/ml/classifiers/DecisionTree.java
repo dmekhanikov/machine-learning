@@ -1,5 +1,6 @@
 package megabyte.ml.classifiers;
 
+import lombok.AllArgsConstructor;
 import lombok.Setter;
 import megabyte.ml.Instance;
 
@@ -20,12 +21,12 @@ public class DecisionTree {
 
     public void train(List<Instance> trainingSet) {
         this.root = new TreeNode();
-        buildTree(this.root, trainingSet);
+        buildTree(root, trainingSet);
     }
 
     public boolean classify(Instance instance) {
         TreeNode node = root;
-        while (node.label == null) {
+        while (!node.isLeaf()) {
             int value = instance.get(node.featureNum);
             if (value < node.threshold) {
                 node = node.left;
@@ -36,9 +37,21 @@ public class DecisionTree {
         return node.label;
     }
 
+    public void prune(List<Instance> instances) {
+        while (true) {
+            PruningStats stats = findWorstNode(root, instances);
+            if (stats.errors > stats.prunedErrors) {
+                stats.node.left = null;
+                stats.node.right = null;
+            } else {
+                return;
+            }
+        }
+    }
+
     private void buildTree(TreeNode node, List<Instance> instances) {
+        node.label = majority(instances);
         if (instances.size() <= minNodeInstances || isOneClass(instances)) {
-            node.label = majority(instances);
             return;
         }
         int instanceSize = instances.get(0).size();
@@ -62,6 +75,32 @@ public class DecisionTree {
         buildTree(node.left, instances.subList(0, p));
         node.right = new TreeNode();
         buildTree(node.right, instances.subList(p, instances.size()));
+    }
+
+    private PruningStats findWorstNode(TreeNode node, List<Instance> instances) {
+        if (node.isLeaf()) {
+            int errors = errorsCount(node, instances);
+            return new PruningStats(node, errors, errors);
+        } else {
+            int p = partition(instances, node.featureNum, node.threshold);
+            PruningStats leftStats = findWorstNode(node.left, instances.subList(0, p));
+            PruningStats rightStats = findWorstNode(node.right, instances.subList(p, instances.size()));
+            int prunedErrors = errorsCount(node, instances);
+            PruningStats stats = new PruningStats(node, leftStats.errors + rightStats.errors, prunedErrors);
+            if (leftStats.improvement() > stats.improvement()) {
+                stats = leftStats;
+            }
+            if (rightStats.improvement() > stats.improvement()) {
+                stats = rightStats;
+            }
+            return stats;
+        }
+    }
+
+    private int errorsCount(TreeNode node, List<Instance> instances) {
+        return (int) instances.stream()
+                .filter(instance -> instance.getLabel() != node.label)
+                .count();
     }
 
     private boolean isOneClass(List<Instance> instances) {
@@ -119,9 +158,24 @@ public class DecisionTree {
     private static class TreeNode {
         int featureNum;
         int threshold;
-        Boolean label; // not null for leafs
+        Boolean label;
 
         TreeNode left;
         TreeNode right;
+
+        boolean isLeaf() {
+            return left == null && right == null;
+        }
+    }
+
+    @AllArgsConstructor
+    private static class PruningStats {
+        TreeNode node;
+        int errors;
+        int prunedErrors;
+
+        int improvement() {
+            return errors - prunedErrors;
+        }
     }
 }
