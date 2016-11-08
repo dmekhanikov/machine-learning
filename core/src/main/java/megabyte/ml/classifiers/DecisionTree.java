@@ -4,15 +4,15 @@ import lombok.AllArgsConstructor;
 import lombok.Setter;
 import megabyte.ml.Instance;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class DecisionTree implements Classifier {
 
     private TreeNode root;
+
+    @Setter
+    private boolean randomizeFeatures;
 
     @Setter
     private int minNodeInstances = 10;
@@ -59,7 +59,17 @@ public class DecisionTree implements Classifier {
         double minGini = 1;
         int bestF = -1;
         int bestT = -1;
-        for (int f = 0; f < instanceSize; f++) {
+        List<Integer> features = new ArrayList<>();
+        for (int i = 0; i < instanceSize; i++) {
+            features.add(i);
+        }
+        if (randomizeFeatures) {
+            // leave random sqrt(instanceSize) of them
+            int m = (int) Math.sqrt(instanceSize);
+            Collections.shuffle(features, random);
+            features = features.subList(0, m);
+        }
+        for (int f : features) {
             for (int t : featureValues(instances, f)) {
                 double gini = avgGini(instances, f, t);
                 if (gini < minGini) {
