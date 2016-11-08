@@ -79,6 +79,10 @@ public class DecisionTree implements Classifier {
                 }
             }
         }
+        if (bestF == -1) {
+            node.label = majority(instances);
+            return;
+        }
         node.featureNum = bestF;
         node.threshold = bestT;
         int p = partition(instances, bestF, bestT);
