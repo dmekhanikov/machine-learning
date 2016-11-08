@@ -14,7 +14,7 @@ public class DecisionTreeExample {
     }
 
     private void doMain() throws IOException {
-        List<Instance> trainSet = DataReader.readInstancesFromResources("random-forest/arcene_train.data", "random-forest/arcene_train.labels");
+        List<Instance> trainSet = DataReader.readInstancesFromResources("classifiers/train.data", "classifiers/train.labels");
         DecisionTree decisionTree = new DecisionTree();
         int buildSetSize = trainSet.size() * 2 / 3;
         List<Instance> buildSet = trainSet.subList(0, buildSetSize);
@@ -22,7 +22,7 @@ public class DecisionTreeExample {
         List<Instance> pruneSet = trainSet.subList(buildSetSize, trainSet.size());
         decisionTree.prune(pruneSet);
 
-        List<Instance> validSet = DataReader.readInstancesFromResources("random-forest/arcene_valid.data", "random-forest/arcene_valid.labels");
+        List<Instance> validSet = DataReader.readInstancesFromResources("classifiers/valid.data", "classifiers/valid.labels");
         double f1 = Measures.f1Measure(decisionTree, validSet);
         System.out.println("F1 Measure: " + f1);
     }

@@ -14,11 +14,11 @@ public class RandomForestExample {
     }
 
     private void doMain() throws IOException {
-        List<Instance> trainSet = DataReader.readInstancesFromResources("random-forest/arcene_train.data", "random-forest/arcene_train.labels");
+        List<Instance> trainSet = DataReader.readInstancesFromResources("classifiers/train.data", "classifiers/train.labels");
         RandomForest randomForest = new RandomForest(100);
         randomForest.train(trainSet);
 
-        List<Instance> validSet = DataReader.readInstancesFromResources("random-forest/arcene_valid.data", "random-forest/arcene_valid.labels");
+        List<Instance> validSet = DataReader.readInstancesFromResources("classifiers/valid.data", "classifiers/valid.labels");
         double f1 = Measures.f1Measure(randomForest, validSet);
         System.out.println("F1 Measure: " + f1);
     }
