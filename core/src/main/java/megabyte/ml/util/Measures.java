@@ -3,9 +3,7 @@ package megabyte.ml.util;
 import megabyte.ml.Instance;
 import megabyte.ml.classifiers.Classifier;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class Measures {
 
@@ -44,5 +42,62 @@ public class Measures {
             rho -= q;
         }
         return rho;
+    }
+
+    public static double pearson(double[] x, double[] y) {
+        return cov(x, y) / Math.sqrt(D(x) * D(y));
+    }
+
+    public static double cov(double[] x, double[] y) {
+        int n = x.length;
+        double ex = E(x);
+        double ey = E(y);
+        double cov = 0;
+        for (int i = 0; i < n; i++) {
+            cov += (x[i] - ex) * (y[i] - ey) / n;
+        }
+        return cov;
+    }
+
+    public static double E(double[] x) {
+        int n = x.length;
+        double e = 0;
+        for (double a : x) {
+            e += a / n;
+        }
+        return e;
+    }
+
+    public static double D(double[] x) {
+        return cov(x, x);
+    }
+
+    // y should be in {1, -1}
+    public static double informationGain(double[] x, double[] y) {
+        List<Pair<Double, Double>> cases = new ArrayList<>();
+        int n = x.length;
+        for (int i = 0; i < n; i++) {
+            cases.add(new Pair<>(x[i], y[i]));
+        }
+        int p = Lists.partition(cases, c -> c.second() == -1);
+        return entropy(cases) - entropy(cases.subList(0, p)) / p - entropy(cases.subList(p, n)) / (n - p);
+    }
+
+    public static <T> double entropy(List<T> x) {
+        Map<T, Integer> hist = new HashMap<>();
+        for (T a : x) {
+            Integer count = hist.get(a);
+            if (count == null) {
+                count = 0;
+            }
+            hist.put(a, count + 1);
+        }
+        double h = 0;
+        int n = x.size();
+        for (int count : hist.values()) {
+            double p = (double) count / n;
+            h -= p * Math.log(p) / Math.log(2);
+        }
+        return h;
     }
 }

@@ -1,14 +1,16 @@
 package megabyte.ml.util;
 
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 
 import java.util.Comparator;
 
 @AllArgsConstructor
+@EqualsAndHashCode
 public class Pair<T, F> {
 
-    private T first;
-    private F second;
+    private final T first;
+    private final F second;
 
     public T first() {
         return first;

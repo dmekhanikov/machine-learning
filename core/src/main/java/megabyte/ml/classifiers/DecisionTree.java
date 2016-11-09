@@ -3,6 +3,7 @@ package megabyte.ml.classifiers;
 import lombok.AllArgsConstructor;
 import lombok.Setter;
 import megabyte.ml.Instance;
+import megabyte.ml.util.Lists;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -85,7 +86,7 @@ public class DecisionTree implements Classifier {
         }
         node.featureNum = bestF;
         node.threshold = bestT;
-        int p = partition(instances, bestF, bestT);
+        int p = Lists.partition(instances, instance -> instance.get(node.featureNum) < node.threshold);
         node.left = new TreeNode();
         buildTree(node.left, instances.subList(0, p));
         node.right = new TreeNode();
@@ -97,7 +98,7 @@ public class DecisionTree implements Classifier {
             int errors = errorsCount(node, instances);
             return new PruningStats(node, errors, errors);
         } else {
-            int p = partition(instances, node.featureNum, node.threshold);
+            int p = Lists.partition(instances, instance -> instance.get(node.featureNum) < node.threshold);
             PruningStats leftStats = findWorstNode(node.left, instances.subList(0, p));
             PruningStats rightStats = findWorstNode(node.right, instances.subList(p, instances.size()));
             int prunedErrors = errorsCount(node, instances);
@@ -130,7 +131,7 @@ public class DecisionTree implements Classifier {
 
     // weighted Gini index for split using feature number f and threshold equal to t
     private double avgGini(List<Instance> instances, int f, int t) {
-        int p = partition(instances, f, t);
+        int p = Lists.partition(instances, instance -> instance.get(f) < t);
         int n = instances.size();
         double gini1 = gini(instances.subList(0, p));
         double gini2 = gini(instances.subList(0, n));
@@ -141,17 +142,6 @@ public class DecisionTree implements Classifier {
         long falseCount = instances.stream().filter(instance -> !instance.getLabel()).count();
         double p = (double) falseCount / instances.size();
         return 1 - Math.pow(p, 2) - Math.pow(1 - p, 2);
-    }
-
-    private int partition(List<Instance> instances, int f, int t) {
-        int i = 0;
-        for (int j = 0; j < instances.size(); j++) {
-            if (instances.get(j).get(f) < t) {
-                Collections.swap(instances, i, j);
-                i++;
-            }
-        }
-        return i;
     }
 
     // returns value of the majority of labels
